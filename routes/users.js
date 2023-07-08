@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
 
 const User = require("../schemas/user");
 
@@ -30,6 +31,36 @@ router.post("/users", async (req, res) => {
   await user.save();
 
   res.status(201).json({});
+});
+
+// 로그인 API
+router.post("/login", async (req, res) => {
+  const { nickname, password } = req.body;
+
+  try {
+    // 닉네임과 비밀번호를 사용하여 사용자 조회
+    const user = await User.findOne({ nickname, password });
+
+    if (!user) {
+      res.status(401).json({
+        errorMessage: "닉네임 또는 패스워드를 확인해주세요.",
+      });
+      return;
+    }
+
+    // JWT 토큰 생성
+    const token = jwt.sign({ userId: user._id }, "mySecretKey");//"mySecretKey"JWT 토큰을 서명하기 위한 비밀 키
+
+     // 토큰을 쿠키에 저장하여 클라이언트에게 전달
+    res.cookie("token", token, { httpOnly: true });
+    
+    res.status(200).json({ message: "로그인 성공!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      errorMessage: "서버 오류가 발생했습니다.",
+    });
+  }
 });
 
 
