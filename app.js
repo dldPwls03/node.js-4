@@ -1,28 +1,27 @@
-const express = require('express');
+const express = require("express");
 const usersRouter = require("./routes/users.js");
-
+const cookieParser = require("cookie-parser");
+// const mysql = require("mysql2/promise");
 const app = express();
 const port = 5000;
 
-const connect = require('./schemas');
+const connect = require("./schemas");
 connect();
 
-
-// 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static("assets"));
-app.use("/api", [ usersRouter]);
+app.use("/api", [usersRouter]);
+app.use(cookieParser());
 
+const postsRouter = require("./routes/posts");
+app.use("/posts", [postsRouter]);
 
-const postsRouter = require('./routes/posts');
-app.use('/posts', [postsRouter]);
+const commentsRouter = require("./routes/comments");
+app.use("/posts", [commentsRouter]);
 
-const commentsRouter = require('./routes/comments');
-app.use('/posts', [commentsRouter]);
-
-app.get('/', (req, res) => {
-  res.send('hello blog :)');
+app.get("/", (req, res) => {
+  res.send("hello blog :)");
 });
 
 app.listen(port, () => {
