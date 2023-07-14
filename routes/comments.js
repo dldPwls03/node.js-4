@@ -71,26 +71,30 @@ router.get("/posts/:postId/comments", authMiddleware, async (req, res) => {
 })
 
 // 댓글 수정 api
-router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res) => {
+router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res) => { //URL의 파라미터로부터 _postId와 _commentId를 추출합니다. 
     try {
         const { userId } = res.locals.user;
         const { postId, commentId } = req.params;
         const { content } = req.body;
         const post = await Posts.findOne({ where: { postId } });
+        //Posts 모델에서 _id가 _postId와 일치하는 게시글을 찾습니다.
+        //findOne 메소드는 단일 문서를 반환하므로 [post]로 결과를 배열 디스트럭처링합니다
         if (!post) {
             return res
                 .status(404)
-                .json({ errorMessage: '게시글을 찾을 수 없습니다.' });
-        }
+                .json({ errorMessage: '게시글 조회에 실패하였습니다.' });
+        }        //게시글이 존재하지 않는 경우 404 상태코드와 함께 실패 메시지를 반환합니다.
         const comment = await Comments.findOne({ where: { commentId } });
+        //Comments 모델에서 _id가 _commentId와 일치하는 댓글을 찾습니다.
+        //find 메소드는 배열을 반환하므로 [comment]로 결과를 배열 디스트럭처링합니다.
         if (!comment) {
             return res
                 .status(404)
                 .json({ errorMessage: '코멘트를 찾을 수 없습니다.' });
-        }
-        if (userId !== comment.UserId) {
+        } //댓글이 존재하지 않는 경우 404 상태코드와 함께 실패 메시지를 반환
+        if (userId !== comment.UserId) {  //요청 본문에서 전달받은 userId와 댓글의 userId를 비교합니다.
             return res
-                .status(400)
+                .status(400) 
                 .json({ errorMessage: '본인이 작성한 댓글만 수정할 수 있습니다.' });
         }
         if (!content) {
@@ -99,7 +103,7 @@ router.put('/posts/:postId/comments/:commentId', authMiddleware, async (req, res
         await comment.update({ content });
         res.status(200).json({ message: '댓글을 수정하였습니다.' });
 
-    } catch (error) {
+    } catch (err) {
         res.status(500).json({ errorMessage: '댓글 수정에 실패했습니다.' });
 
 
